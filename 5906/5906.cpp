@@ -2,7 +2,7 @@
 #define ll long long
 using namespace std;
 const int N=2e5+10;
-int n,m,un,len,cn=0,bn;
+int n,m,un,len,cn,bn;
 int a[N],b[N],c[N],num[N],st[N],ed[N],ANS[N];
 struct node{
 	int l,r,id;
@@ -43,6 +43,7 @@ int main(){
 	sort(q+1,q+1+m);
 	for(int i=1,j=1;j<=bn;j++){
 		int ans=0,br=len*j,l=br+1,r=l-1;
+		cn=0;
 		for(;b[q[i].l]==j;i++){
 			if(b[q[i].l]==b[q[i].r]){
 				ANS[q[i].id]=calc(q[i].l,q[i].r);
@@ -52,9 +53,9 @@ int main(){
 				r++;
 				if(!st[a[r]]){
 					st[a[r]]=r;
-					c[++cn]=a[r];
 				}
 				ed[a[r]]=r;
+				c[++cn]=a[r];
 				ans=max(ans,r-st[a[r]]);
 			}
 			int tp=ans;
