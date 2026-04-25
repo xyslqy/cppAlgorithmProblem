@@ -1,7 +1,6 @@
 #include <bits/stdc++.h>
 int inline read() {
     int x = 0;
-
     char c = getchar();
     while (!isdigit(c)) c = getchar();
     while (isdigit(c)) {
