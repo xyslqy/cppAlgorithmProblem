@@ -1,19 +1,22 @@
 #include <bits/stdc++.h>
-const int N = 2e6;
+const int N = 2e6, inf = 0x3f3f3f3f;
 struct Splay {
-    int fa, ch[2], w, mx, revflag;
+    int fa, ch[2], mx, mxid, w, revflag;
 } node[N];
+#define fa(x) node[x].fa
 #define ls(x) node[x].ch[0]
 #define rs(x) node[x].ch[1]
-#define fa(x) node[x].fa
-inline int max(int x, int y) { return x > y ? x : y; }
-int val[N];
 inline void pushup(int x) {
-    node[x].mx = x;
-    if (ls(x) && val[node[ls(x)].mx] > val[node[x].mx])
+    node[x].mx = node[x].w;
+    node[x].mxid = x;
+    if (ls(x) && node[ls(x)].mx > node[x].mx) {
         node[x].mx = node[ls(x)].mx;
-    if (rs(x) && val[node[rs(x)].mx] > val[node[x].mx])
+        node[x].mxid = node[ls(x)].mxid;
+    }
+    if (rs(x) && node[rs(x)].mx > node[x].mx) {
         node[x].mx = node[rs(x)].mx;
+        node[x].mxid = node[rs(x)].mxid;
+    }
 }
 inline void reverse(int x) {
     std::swap(ls(x), rs(x));
@@ -31,7 +34,7 @@ inline void rotate(int x) {
     int y = fa(x), z = fa(y), d = get(x), dd = get(y);
     if (nroot(y)) node[z].ch[dd] = x;
     node[y].ch[d] = node[x].ch[!d];
-    fa(node[x].ch[!d]) = y;
+    if (node[x].ch[!d]) fa(node[x].ch[!d]) = y;
     node[x].ch[!d] = y;
     fa(y) = x;
     fa(x) = z;
@@ -48,7 +51,6 @@ inline void splay(int x) {
             rotate(get(x) == get(fa(x)) ? fa(x) : x);
         }
     }
-    pushup(x);
 }
 inline void access(int x) {
     int y = 0;
@@ -67,14 +69,15 @@ inline void makeroot(int x) {
 inline int findroot(int x) {
     access(x);
     splay(x);
-    while (ls(x)) x = ls(x), pushdown(x);
+    while (ls(x)) x = ls(x);
     splay(x);
     return x;
 }
-inline void split(int x, int y) {
+inline int split(int x, int y) {
     makeroot(x);
     access(y);
     splay(y);
+    return y;
 }
 inline void link(int x, int y) {
     makeroot(x);
@@ -83,14 +86,23 @@ inline void link(int x, int y) {
 inline void cut(int x, int y) {
     split(x, y);
     fa(x) = ls(y) = 0;
+    pushup(x);
     pushup(y);
 }
-
-int n, m, ans = 0x3f3f3f3f;
+int n, m, ans = inf;
+inline int read() {
+    int x = 0;
+    char c = getchar();
+    while (!isdigit(c)) c = getchar();
+    while (isdigit(c)) {
+        x = x * 10 - '0' + c;
+        c = getchar();
+    }
+    return x;
+}
 struct edge {
     int x, y, a, b;
 } e[N];
-inline int read();
 int main() {
     n = read();
     m = read();
@@ -103,39 +115,27 @@ int main() {
     std::sort(e + 1, e + 1 + m, [&](edge x, edge y) { return x.a < y.a; });
     for (int i = 1; i <= m; i++) {
         int x = e[i].x, y = e[i].y, a = e[i].a, b = e[i].b;
-        node[i + n].w = b;
-        val[i + n] = b;
+        node[n + i].w = b;
         if (findroot(x) == findroot(y)) {
             split(x, y);
-            int z = node[y].mx;
-            if (val[z] > b) {
-                cut(e[z - n].x, z);
-                cut(e[z - n].y, z);
-                link(x, i + n);
-                link(y, i + n);
+            int mx = node[y].mx, mxid = node[y].mxid;
+            if (mx > b) {
+                cut(e[mxid - n].x, mxid);
+                cut(e[mxid - n].y, mxid);
+                link(x, n + i);
+                link(y, n + i);
             }
         } else {
-            link(x, i + n);
-            link(y, i + n);
+            link(x, n + i);
+            link(y, n + i);
         }
         if (findroot(1) == findroot(n)) {
-            split(1, n);
-            ans = std::min(ans, a + val[node[n].mx]);
+            ans = std::min(ans, a + node[split(1, n)].mx);
         }
     }
-    if (ans < 0x3f3f3f3f)
-        printf("%d", ans);
-    else
+    if (ans == inf)
         printf("-1");
+    else
+        printf("%d", ans);
     return 0;
-}
-inline int read() {
-    int x = 0;
-    char c = getchar();
-    while (!isdigit(c)) c = getchar();
-    while (isdigit(c)) {
-        x = x * 10 - '0' + c;
-        c = getchar();
-    }
-    return x;
 }
